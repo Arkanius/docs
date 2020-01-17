@@ -12,6 +12,7 @@
     - [Authorizing Form Requests](#authorizing-form-requests)
     - [Customizing The Error Messages](#customizing-the-error-messages)
     - [Customizing The Validation Attributes](#customizing-the-validation-attributes)
+    - [Prepare Input For Validation](#prepare-input-for-validation)
 - [Manually Creating Validators](#manually-creating-validators)
     - [Automatic Redirection](#automatic-redirection)
     - [Named Error Bags](#named-error-bags)
@@ -112,6 +113,13 @@ As you can see, we pass the desired validation rules into the `validate` method.
 Alternatively, validation rules may be specified as arrays of rules instead of a single `|` delimited string:
 
     $validatedData = $request->validate([
+        'title' => ['required', 'unique:posts', 'max:255'],
+        'body' => ['required'],
+    ]);
+
+If you would like to specify the [error bag](#named-error-bags) in which the error messages should be placed, you may use the `validateWithBag` method:
+
+    $request->validateWithBag('blog', [
         'title' => ['required', 'unique:posts', 'max:255'],
         'body' => ['required'],
     ]);
@@ -330,6 +338,25 @@ If you would like the `:attribute` portion of your validation message to be repl
         return [
             'email' => 'email address',
         ];
+    }
+
+<a name="prepare-input-for-validation"></a>
+### Prepare Input For Validation
+
+If you need to sanitize any data from the request before you apply your validation rules, you can use the `prepareForValidation` method:
+
+    use Illuminate\Support\Str;
+
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'slug' => Str::slug($this->slug),
+        ]);
     }
 
 <a name="manually-creating-validators"></a>
@@ -569,6 +596,8 @@ Below is a list of all available validation rules and their function:
 [Distinct](#rule-distinct)
 [E-Mail](#rule-email)
 [Ends With](#rule-ends-with)
+[Exclude If](#rule-exclude-if)
+[Exclude Unless](#rule-exclude-unless)
 [Exists (Database)](#rule-exists)
 [File](#rule-file)
 [Filled](#rule-filled)
@@ -772,6 +801,16 @@ The `filter` validator, which uses PHP's `filter_var` function under the hood, s
 #### ends_with:_foo_,_bar_,...
 
 The field under validation must end with one of the given values.
+
+<a name="rule-exclude-if"></a>
+#### exclude_if:_anotherfield_,_value_
+
+The field under validation will be excluded from the request data returned by the `validate` and `validated` methods if the _anotherfield_ field is equal to _value_.
+
+<a name="rule-exclude-unless"></a>
+#### exclude_unless:_anotherfield_,_value_
+
+The field under validation will be excluded from the request data returned by the `validate` and `validated` methods unless _anotherfield_'s field is equal to _value_.
 
 <a name="rule-exists"></a>
 #### exists:_table_,_column_

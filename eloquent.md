@@ -342,17 +342,33 @@ In addition, the query builder's `orderBy` function supports subqueries. We may 
 <a name="retrieving-single-models"></a>
 ## Retrieving Single Models / Aggregates
 
-In addition to retrieving all of the records for a given table, you may also retrieve single records using `find` or `first`. Instead of returning a collection of models, these methods return a single model instance:
+In addition to retrieving all of the records for a given table, you may also retrieve single records using `find`, `first`, or `firstWhere`. Instead of returning a collection of models, these methods return a single model instance:
 
     // Retrieve a model by its primary key...
     $flight = App\Flight::find(1);
 
     // Retrieve the first model matching the query constraints...
     $flight = App\Flight::where('active', 1)->first();
+    
+    // Shorthand for retrieving the first model matching the query constraints...
+    $flight = App\Flight::firstWhere('active', 1);
 
 You may also call the `find` method with an array of primary keys, which will return a collection of the matching records:
 
     $flights = App\Flight::find([1, 2, 3]);
+
+Sometimes you may wish to retrieve the first result of a query or perform some other action if no results are found. The `firstOr` method will return the first result that is found or, if no results are found, execute the given callback. The result of the callback will be considered the result of the `firstOr` method:
+
+    $model = App\Flight::where('legs', '>', 100)->firstOr(function () {
+            // ...
+    });
+
+The `firstOr` method also accepts an array of columns to retrieve:
+
+    $model = App\Flight::where('legs', '>', 100)
+                ->firstOr(['id', 'legs'], function () {
+                    // ...
+                });
 
 #### Not Found Exceptions
 
@@ -940,6 +956,17 @@ This command will place the new observer in your `App/Observers` directory. If t
          * @return void
          */
         public function deleted(User $user)
+        {
+            //
+        }
+
+        /**
+         * Handle the User "forceDeleted" event.
+         *
+         * @param  \App\User  $user
+         * @return void
+         */
+        public function forceDeleted(User $user)
         {
             //
         }
